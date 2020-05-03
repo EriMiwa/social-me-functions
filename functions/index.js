@@ -1,10 +1,20 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const app = require('express')();
 
 admin.initializeApp();
 
-const express = require('express');
-const app = express();
+const config = {
+  apiKey: "AIzaSyCVXouWUkRBGYgkxi67RhI86YMi6GhMVV0",
+  authDomain: "social-me-9e84a.firebaseapp.com",
+  databaseURL: "https://social-me-9e84a.firebaseio.com",
+  projectId: "social-me-9e84a",
+  storageBucket: "social-me-9e84a.appspot.com",
+  messagingSenderId: "997553938765"
+}
+
+const firebase = require('firebase');
+firebase.initializeApp(config);
 
 app.get('/comments', (req,res) => {
   admin
@@ -44,6 +54,24 @@ app.post('/comment', (req,res) => {
     .catch((err) => {
       res.status(500).json({ error: 'something went wrong' });
       console.error(err);
+    })
+})
+
+app.post('/signup', (req,res) => {
+  const newUser = {
+    email: req.body.email,
+    password: req.body.password,
+    confirmPassword: req.body.confirmPassword,
+    handle: req.body.handle
+  };
+
+  firebase.auth().createUserWithEmailAndPassword(newUser.email, newUser.password)
+    .then(data => {
+      return res.status(201).json({ message: `user ${data.user.uid} signed up successfully`})
+    })
+    .catch(err => {
+      console.error(err);
+      return res.status(500).json({ error: err.code})
     })
 })
 
