@@ -8,24 +8,30 @@ const app = express();
 
 app.get('/comments', (req,res) => {
   admin
-  .firestore()
-  .collection('comments')
-  .get()
-  .then(data => {
-    let comments = [];
-    data.forEach(doc => {
-      comments.push(doc.data());
-    });
-    return res.json(comments)
-  })
-  .catch((err) => console.error(err))
+    .firestore()
+    .collection('comments')
+    .orderBy('createdAt', 'desc')
+    .get()
+    .then(data => {
+      let comments = [];
+      data.forEach(doc => {
+        comments.push({
+          commentId: doc.id,
+          body: doc.data().body,
+          userHandle: doc.data.userHandle,
+          createdAt: doc.data().createdAt
+        });
+      });
+      return res.json(comments)
+    })
+    .catch((err) => console.error(err))
 })
 
 app.post('/comment', (req,res) => {
   const newComment = {
     body: req.body.body,
     userHandle: req.body.userHandle,
-    createdAt: admin.firestore.Timestamp.fromDate(new Date())
+    createdAt: new Date().toISOString()
   };
 
   admin
