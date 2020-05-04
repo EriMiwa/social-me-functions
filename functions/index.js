@@ -16,9 +16,10 @@ const config = {
 const firebase = require('firebase');
 firebase.initializeApp(config);
 
+const db = admin.firestore();
+
 app.get('/comments', (req,res) => {
-  admin
-    .firestore()
+  db
     .collection('comments')
     .orderBy('createdAt', 'desc')
     .get()
@@ -35,7 +36,7 @@ app.get('/comments', (req,res) => {
       return res.json(comments)
     })
     .catch((err) => console.error(err))
-})
+});
 
 app.post('/comment', (req,res) => {
   const newComment = {
@@ -44,8 +45,7 @@ app.post('/comment', (req,res) => {
     createdAt: new Date().toISOString()
   };
 
-  admin
-    .firestore()
+  db
     .collection('comments')
     .add(newComment)
     .then(doc => {
@@ -55,7 +55,7 @@ app.post('/comment', (req,res) => {
       res.status(500).json({ error: 'something went wrong' });
       console.error(err);
     })
-})
+});
 
 app.post('/signup', (req,res) => {
   const newUser = {
@@ -65,14 +65,43 @@ app.post('/signup', (req,res) => {
     handle: req.body.handle
   };
 
-  firebase.auth().createUserWithEmailAndPassword(newUser.email, newUser.password)
+  let token, userId;
+  db.doc(`/users/${newUser.handle}`)
+    .get()
+    .then(doc => {
+      if(doc.exists) {
+        return res.status(400).json({ handle: "this handle is already taken"})
+      } else {
+        return firebase
+          .auth()
+          .createUserWithEmailAndPassword(newUser.email, newUser.password)
+      }
+    })
     .then(data => {
-      return res.status(201).json({ message: `user ${data.user.uid} signed up successfully`})
+      userId = data.user.uid;
+      data.user.getIdToken();
+    })
+    .then(idToken => {
+      token = idToken;
+      const userCredentials = {
+        handle: newUser.handle,
+        email: newUser.email,
+        createdAt: new Date().toISOString(),
+        userId
+      };
+      return db.doc(`/users/${newUser.handle}`).set(userCredentials);
+    })
+    .then(() => {
+      return res.status(201).json({ token });
     })
     .catch(err => {
       console.error(err);
-      return res.status(500).json({ error: err.code})
-    })
-})
+      if (err.code === 'auth/email-already-in-use') {
+        return res.status(400).json({email: 'Email is already in use'})
+      } else {
+        return res.status(500).json({ error: err.code });
+      }
+    });
+});
 
-exports.api = functions.https.onRequest(app)
+exports.api = functions.region('us-central1').https.onRequest(app);
