@@ -39,6 +39,10 @@ app.get('/comments', (req,res) => {
 });
 
 app.post('/comment', (req,res) => {
+  if(req.body.body.trim() === '') {
+    return res.status(400).json({body: 'Body must not be empty'});
+  }
+
   const newComment = {
     body: req.body.body,
     userHandle: req.body.userHandle,
@@ -93,7 +97,8 @@ app.post('/signup', (req,res) => {
   if(Object.keys(errors).length > 0) return res.status(400).json(errors);
 
   let token, userId;
-  db.doc(`/users/${newUser.handle}`)
+  db
+    .doc(`/users/${newUser.handle}`)
     .get()
     .then(doc => {
       if(doc.exists) {
@@ -131,8 +136,7 @@ app.post('/signup', (req,res) => {
     });
 });
 
-app.post('/login', (res,
-  req) => {
+app.post('/login', (res,req) => {
     const user = {
       email: req.body.email,
       password: req.body.password
@@ -145,16 +149,22 @@ app.post('/login', (res,
 
     if(Object.keys(errors).length > 0) return res.status(400).json(errors)
 
-    firebase.auth().signInWithEmailAndPassword(user.email, user.password)
-      .then(data => {
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(user.email, user.password)
+      .then((data) => {
         return data.user.getIdToken();
       })
-      .then(token => {
+      .then((token) => {
         return res.json({token});
       })
-      .catch(err => {
-        console.error(err)
-        return res.status(500).json({error: err.code})
+      .catch((err) => {
+        console.error(err);
+        if(err.code === 'auth/wrong-password') {
+          return res.status(403).json({ general: 'Wrong credentials, please try again'}); 
+        } else return res
+          .status(500)
+          .json({error: err.code})
       })
 
   })
