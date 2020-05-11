@@ -22,8 +22,7 @@ exports.signup = (req,res) => {
   if(!valid) return res.status(400).json(errors)
 
   let token, userId;
-  db
-    .doc(`/users/${newUser.handle}`)
+  db.doc(`/users/${newUser.handle}`)
     .get()
     .then(doc => {
       if(doc.exists) {
@@ -56,7 +55,7 @@ exports.signup = (req,res) => {
       if (err.code === 'auth/email-already-in-use') {
         return res.status(400).json({email: 'Email is already in use'})
       } else {
-        return res.status(500).json({ error: err.code });
+        return res.status(500).json({ general: "Something went wrong, please try again" });;
       }
     });
 }
@@ -69,7 +68,7 @@ exports.login = (res,req) => {
 
   const {valid, errors} = validateLoginData(user);
 
-  if(!valid) return res.status(400).json(errors)
+  if(!valid) return res.status(400).json(errors);
 
   firebase
     .auth()
