@@ -1,8 +1,7 @@
 const { db } = require('../util/admin');
 
 exports.getAllComments = (req,res) => {
-  db
-    .collection('comments')
+  db.collection('comments')
     .orderBy('createdAt', 'desc')
     .get()
     .then(data => {
@@ -19,11 +18,13 @@ exports.getAllComments = (req,res) => {
       });
       return res.json(comments)
     })
-    .catch((err) => console.error(err))
-    res.status(500).json({ error: err.code })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({ error: err.code });
+    });
 }
 
-exports.getAllComments = (req,res) => {
+exports.postOneComment = (req,res) => {
   if(req.body.body.trim() === '') {
     return res.status(400).json({body: 'Body must not be empty'});
   }
@@ -31,17 +32,20 @@ exports.getAllComments = (req,res) => {
   const newComment = {
     body: req.body.body,
     userHandle: req.user.handle,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    likeCount: 0,
+    commentCount: 0
   };
 
-  db
-    .collection('comments')
+  db.collection('comments')
     .add(newComment)
-    .then(doc => {
-      res.json({ message: `document ${doc.id} created successfully`});
+    .then((doc) => {
+      const resScream = newScream;
+      resScream.screamId = doc.id;
+      res.json(resScream);
     })
     .catch((err) => {
       res.status(500).json({ error: 'something went wrong' });
       console.error(err);
-    })
+    });
 }
