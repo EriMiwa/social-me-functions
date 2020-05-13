@@ -18,6 +18,6 @@ app.get('/comments', getAllComments);
 app.post('/comment', FBAuth, postOneComment);
 
 app.post('/signup', signup);
-app.post('/login', login)
+app.post('/login', login);
 
 exports.api = functions.region('us-central1').https.onRequest(app);

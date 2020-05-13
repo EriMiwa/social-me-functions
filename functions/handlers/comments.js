@@ -33,16 +33,12 @@ exports.postOneComment = (req,res) => {
     body: req.body.body,
     userHandle: req.user.handle,
     createdAt: new Date().toISOString(),
-    likeCount: 0,
-    commentCount: 0
   };
 
   db.collection('comments')
     .add(newComment)
     .then((doc) => {
-      const resScream = newScream;
-      resScream.screamId = doc.id;
-      res.json(resScream);
+      res.json({ message: `document ${doc.id} created successfully` });
     })
     .catch((err) => {
       res.status(500).json({ error: 'something went wrong' });
