@@ -43,6 +43,7 @@ exports.signup = (req,res) => {
         handle: newUser.handle,
         email: newUser.email,
         createdAt: new Date().toISOString(),
+        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${noImg}?alt=media`,
         userId
       };
       return db.doc(`/users/${newUser.handle}`).set(userCredentials);
@@ -69,6 +70,10 @@ exports.login = (res,req) => {
   const {valid, errors} = validateLoginData(user);
 
   if(!valid) return res.status(400).json(errors);
+
+  const noImg = 'no-img.png';
+
+
 
   firebase
     .auth()
@@ -120,6 +125,17 @@ exports.uploadImage = (req, res) => {
           contentType: imageToBeUploaded.mimetype
         }
       } 
+    })
+    .then(() => {
+      const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`
+      return db.doc(`/users/${req.user.handle}`).update({ imageUrl });
+    })
+    .then(() => {
+      return res.json( { message: 'Image uploaded successfully'});
+    })
+    .catch(err => {
+      console.error(err);
+      return res.status(500).json({ error: err.code               })
     })
   })
 }
