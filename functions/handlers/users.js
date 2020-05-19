@@ -102,7 +102,7 @@ exports.uploadImage = (req, res) => {
   const os = require('os');
   const fs = require('fs');
 
-  const busboy = new BusBoy({ headers: req:.headers });
+  const busboy = new BusBoy({ headers: req.headers });
 
 
   let imageFileName;
