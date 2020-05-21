@@ -19,6 +19,6 @@ app.post('/comment', FBAuth, postOneComment);
 
 app.post('/signup', signup);
 app.post('/login', login);
-app.post('user/image', uploadImage);
+app.post('user/image', FBAuth, uploadImage);
 
 exports.api = functions.region('us-central1').https.onRequest(app);

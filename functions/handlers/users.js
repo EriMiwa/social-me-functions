@@ -21,6 +21,8 @@ exports.signup = (req,res) => {
 
   if(!valid) return res.status(400).json(errors)
 
+  const noImg = 'no-img.png';
+
   let token, userId;
   db.doc(`/users/${newUser.handle}`)
     .get()
@@ -71,10 +73,6 @@ exports.login = (res,req) => {
 
   if(!valid) return res.status(400).json(errors);
 
-  const noImg = 'no-img.png';
-
-
-
   firebase
     .auth()
     .signInWithEmailAndPassword(user.email, user.password)
@@ -113,13 +111,13 @@ exports.uploadImage = (req, res) => {
     console.log(mimetype);
     const imageExtension = filename.split('.')[filename.split('.').length - 1];
     const imageFileName = `${Math.round(Math.random()*100000000000)}.${imageExtension}`;
-    const filepath = path.join(os.tmdir(), imageFileName);
+    const filepath = path.join(os.tmpdir(), imageFileName);
     imageToBeUploaded = { filepath, mimetype };
     file.pipe(fs.createWriteStreame(filepath));
   });
   busboy.on('finish', () => {
     admin.storage().bucket().upload(imageToBeUploaded.filepath, {
-      resumble: false,
+      resumable: false,
       metadata: {
         metadata: {
           contentType: imageToBeUploaded.mimetype
@@ -135,7 +133,7 @@ exports.uploadImage = (req, res) => {
     })
     .catch(err => {
       console.error(err);
-      return res.status(500).json({ error: err.code               })
+      return res.status(500).json({ error: err.code })
     })
   })
 }
