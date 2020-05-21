@@ -113,10 +113,13 @@ exports.uploadImage = (req, res) => {
     const imageFileName = `${Math.round(Math.random()*100000000000)}.${imageExtension}`;
     const filepath = path.join(os.tmpdir(), imageFileName);
     imageToBeUploaded = { filepath, mimetype };
-    file.pipe(fs.createWriteStreame(filepath));
+    file.pipe(fs.createWriteStream(filepath));
   });
   busboy.on('finish', () => {
-    admin.storage().bucket().upload(imageToBeUploaded.filepath, {
+    admin
+      .storage()
+      .bucket()
+      .upload(imageToBeUploaded.filepath, {
       resumable: false,
       metadata: {
         metadata: {
@@ -136,4 +139,5 @@ exports.uploadImage = (req, res) => {
       return res.status(500).json({ error: err.code })
     })
   })
+  busboy.end(req.rawBody);
 }
